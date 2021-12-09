@@ -76,6 +76,8 @@ class StartStageHandler(
   private val retryDelay = Duration.ofMillis(retryDelayMs)
 
   override fun handle(message: StartStage) {
+    log.info("StartStageHandler :: application : {}, stageId : {}, executionId: {}, executionType :{} ",
+      message.application, message.stageId, message.executionId, message.executionType)
     message.withStage { stage ->
       try {
         stage.withAuth {

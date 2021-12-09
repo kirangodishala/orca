@@ -94,6 +94,7 @@ public class ExecutionLauncher {
     persistExecution(execution);
 
     try {
+      log.info("ExecutionLauncher start() :: ExecutionType : {}", type.toString());
       start(execution);
     } catch (Throwable t) {
       handleStartupFailure(execution, t);

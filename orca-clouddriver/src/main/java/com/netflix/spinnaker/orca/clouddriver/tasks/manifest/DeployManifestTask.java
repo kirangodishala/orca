@@ -31,9 +31,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @NonnullByDefault
 public final class DeployManifestTask extends AbstractCloudProviderAwareTask implements Task {
@@ -49,8 +51,15 @@ public final class DeployManifestTask extends AbstractCloudProviderAwareTask imp
   @Nonnull
   @Override
   public TaskResult execute(@Nonnull StageExecution stage) {
+    log.info(
+        "DeployManifestTask execute :: stage name : {}, Id: {}, RefId : {}, Type : {}",
+        stage.getName(),
+        stage.getId(),
+        stage.getRefId(),
+        stage.getType());
     ImmutableMap<String, Map> operation = getOperation(stage);
     TaskId taskId = executeOperation(stage, operation);
+    log.info("DeployManifestTask execute :: taskId : {}", taskId.getId());
     ImmutableMap<String, Object> outputs = getOutputs(stage, taskId);
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
   }

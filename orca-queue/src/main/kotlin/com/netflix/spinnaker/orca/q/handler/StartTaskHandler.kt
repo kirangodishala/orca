@@ -49,6 +49,8 @@ class StartTaskHandler(
 ) : OrcaMessageHandler<StartTask>, ExpressionAware {
 
   override fun handle(message: StartTask) {
+    log.info("StartTaskHandler :: application : {}, stageId : {}, taskId : {}, executionId: {}, executionType :{} ",
+      message.application, message.stageId, message.taskId,message.executionId, message.executionType)
     message.withTask { stage, task ->
       if (isTaskEnabled(task)) {
         task.status = RUNNING

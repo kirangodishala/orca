@@ -364,6 +364,7 @@ class OperationsController {
   Map<String, String> ops(@RequestBody List<Map> input) {
     def execution = [application: null, name: null, stages: input]
     parsePipelineTrigger(executionRepository, buildService, execution, true)
+    log.info("OperationsController ops(list) :: ")
     startTask(execution)
   }
 
@@ -371,6 +372,7 @@ class OperationsController {
   Map<String, String> ops(@RequestBody Map input) {
     def execution = [application: input.application, name: input.description, stages: input.job, trigger: input.trigger ?: [:]]
     parsePipelineTrigger(executionRepository, buildService, execution, true)
+    log.info("OperationsController ops :: application: {}, name: {} ", input.application, input.description)
     startTask(execution)
   }
 

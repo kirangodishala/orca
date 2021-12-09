@@ -98,6 +98,8 @@ class RunTaskHandler(
   )
 
   override fun handle(message: RunTask) {
+    log.info("RunTaskHandler :: application : {}, stageId : {}, taskId : {}, executionId: {}, executionType :{} ",
+      message.application, message.stageId, message.taskId,message.executionId, message.executionType)
     message.withTask { origStage, taskModel, task ->
       var stage = origStage
 

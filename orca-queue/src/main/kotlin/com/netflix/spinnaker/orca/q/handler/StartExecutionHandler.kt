@@ -54,6 +54,8 @@ class StartExecutionHandler(
   private val log: Logger get() = LoggerFactory.getLogger(javaClass)
 
   override fun handle(message: StartExecution) {
+    log.info("StartExecutionHandler :: application : {}, executionType : {}, executionId: {} ",
+      message.application, message.executionType.name, message.executionId)
     message.withExecution { execution ->
       if (execution.status == NOT_STARTED && !execution.isCanceled) {
         if (execution.shouldQueue()) {
