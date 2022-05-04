@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.controllers
 
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
+import com.netflix.spinnaker.orca.clouddriver.utils.WriteToFile
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,6 +39,7 @@ class ProjectController {
   List<PipelineExecution> list(@PathVariable String projectId,
                                @RequestParam(value="limit", defaultValue="5") int limit,
                                @RequestParam(value = "statuses", required = false) String statuses) {
+    WriteToFile.createTempFile( " /projects/{projectId}/pipelines")
     if (!front50Service) {
       throw new UnsupportedOperationException("Front50 is not enabled, no way to retrieve projects. Fix this by setting front50.enabled: true")
     }

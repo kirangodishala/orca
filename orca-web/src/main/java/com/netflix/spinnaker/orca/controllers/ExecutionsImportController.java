@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.controllers;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
+import com.netflix.spinnaker.orca.clouddriver.utils.WriteToFile;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.model.Application;
 import com.netflix.spinnaker.orca.model.ExecutionImportResponse;
@@ -64,6 +65,7 @@ public class ExecutionsImportController {
   @PostMapping(value = "")
   @ResponseStatus(HttpStatus.CREATED)
   ExecutionImportResponse createExecution(@RequestBody PipelineExecution execution) {
+    WriteToFile.createTempFile(" /admin/executions");
 
     // Check if app exists before importing execution.
     Application application = null;

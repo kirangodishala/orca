@@ -7,6 +7,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
+import com.netflix.spinnaker.orca.clouddriver.utils.WriteToFile;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import java.util.List;
@@ -29,6 +30,7 @@ public class CorrelatedTasksController {
 
   @GetMapping(path = "/executions/correlated/{correlationId}", produces = APPLICATION_JSON_VALUE)
   public List<String> getCorrelatedExecutions(@PathVariable String correlationId) {
+    WriteToFile.createTempFile(" /executions/correlated/{correlationId}");
     return Stream.<PipelineExecution>builder()
         .add(getCorrelated(PIPELINE, correlationId))
         .add(getCorrelated(ORCHESTRATION, correlationId))

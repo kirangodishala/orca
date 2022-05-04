@@ -22,6 +22,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.api.pipeline.models.*
+import com.netflix.spinnaker.orca.clouddriver.utils.WriteToFile
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.model.OrchestrationViewModel
 import com.netflix.spinnaker.orca.pipeline.CompoundExecutionOperator
@@ -106,6 +107,7 @@ class TaskController {
     @RequestParam(value = "limit", defaultValue = "3500") int limit,
     @RequestParam(value = "statuses", required = false) String statuses
   ) {
+    WriteToFile.createTempFile(" /applications/{application}/tasks")
     statuses = statuses ?: ExecutionStatus.values()*.toString().join(",")
     def executionCriteria = new ExecutionCriteria()
       .setPage(page)
@@ -130,6 +132,7 @@ class TaskController {
   @PostFilter("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/tasks", method = RequestMethod.GET)
   List<OrchestrationViewModel> list() {
+    WriteToFile.createTempFile(" /tasks")
     executionRepository.retrieve(ORCHESTRATION).toBlocking().iterator.collect {
       convert it
     }
@@ -143,6 +146,7 @@ class TaskController {
   // GUID, it's unlikely than an attacker would be able to guess the identifier for any task.
   @RequestMapping(value = "/tasks/{id}", method = RequestMethod.GET)
   OrchestrationViewModel getTask(@PathVariable String id) {
+    WriteToFile.createTempFile(" /tasks/{id} - getTask()")
     convert executionRepository.retrieve(ORCHESTRATION, id)
   }
 
@@ -153,6 +157,7 @@ class TaskController {
   @PreAuthorize("hasPermission(this.getOrchestration(#id)?.application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/tasks/{id}", method = RequestMethod.DELETE)
   void deleteTask(@PathVariable String id) {
+    WriteToFile.createTempFile(" /tasks/{id} - deleteTask()")
     executionRepository.retrieve(ORCHESTRATION, id).with {
       if (it.status.complete) {
         executionRepository.delete(ORCHESTRATION, id)
@@ -167,6 +172,7 @@ class TaskController {
   @RequestMapping(value = "/tasks/{id}/cancel", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancelTask(@PathVariable String id) {
+    WriteToFile.createTempFile(" /tasks/{id}/cancel")
     executionOperator.cancel(ORCHESTRATION, id)
   }
 
@@ -174,6 +180,7 @@ class TaskController {
   @RequestMapping(value = "/tasks/cancel", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancelTasks(@RequestBody List<String> taskIds) {
+    WriteToFile.createTempFile(" /tasks/cancel")
     taskIds.each {
       executionOperator.cancel(ORCHESTRATION, it)
     }
@@ -202,6 +209,7 @@ class TaskController {
     @RequestParam(value = "limit", required = false) Integer limit,
     @RequestParam(value = "statuses", required = false) String statuses,
     @RequestParam(value = "expand", defaultValue = "true") boolean expand) {
+    WriteToFile.createTempFile(" /pipelines ")
     statuses = statuses ?: ExecutionStatus.values()*.toString().join(",")
     limit = limit ?: 1
     ExecutionCriteria executionCriteria = new ExecutionCriteria(
@@ -312,6 +320,7 @@ class TaskController {
     @RequestParam(value = "expand", defaultValue = "false") boolean expand
     // TODO(joonlim): May make sense to add a summary boolean so that, when true, this returns a condensed summary rather than complete execution objects.
   ) {
+    WriteToFile.createTempFile(" /applications/{application}/pipelines/search")
     validateSearchForPipelinesByTriggerParameters(triggerTimeStartBoundary, triggerTimeEndBoundary, startIndex, size)
 
     ExecutionComparator sortType = BUILD_TIME_DESC
@@ -415,12 +424,15 @@ class TaskController {
   @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.GET)
   PipelineExecution getPipeline(@PathVariable String id) {
+    WriteToFile.createTempFile(" /pipelines/" + id + " --getPipeline() ")
     executionRepository.retrieve(PIPELINE, id)
   }
 
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.DELETE)
   void deletePipeline(@PathVariable String id) {
+    WriteToFile.createTempFile(" /pipelines/" + id + " --deletePipeline() ")
+
     executionRepository.retrieve(PIPELINE, id).with {
       if (it.status.complete) {
         executionRepository.delete(PIPELINE, id)
@@ -437,6 +449,8 @@ class TaskController {
   void cancel(
     @PathVariable String id, @RequestParam(required = false) String reason,
     @RequestParam(defaultValue = "false") boolean force) {
+    WriteToFile.createTempFile(" /pipelines/" + id + "/cancel ")
+
     executionOperator.cancel(PIPELINE, id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), reason)
   }
 
@@ -444,6 +458,8 @@ class TaskController {
   @RequestMapping(value = "/pipelines/{id}/pause", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void pause(@PathVariable String id) {
+    WriteToFile.createTempFile(" /pipelines/" + id + "/pause ")
+
     executionOperator.pause(PIPELINE, id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
   }
 
@@ -451,6 +467,8 @@ class TaskController {
   @RequestMapping(value = "/pipelines/{id}/resume", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void resume(@PathVariable String id) {
+    WriteToFile.createTempFile(" /pipelines/" + id + "/resume ")
+
     executionOperator.resume(PIPELINE, id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), false)
   }
 
@@ -459,6 +477,7 @@ class TaskController {
   @RequestMapping(value = "/pipelines/running", method = RequestMethod.GET)
   @ResponseStatus(HttpStatus.GONE)
   List<String> runningPipelines() {
+    WriteToFile.createTempFile(" /pipelines/running ")
     []
   }
 
@@ -467,6 +486,8 @@ class TaskController {
   @RequestMapping(value = "/pipelines/waiting", method = RequestMethod.GET)
   @ResponseStatus(HttpStatus.GONE)
   List<String> waitingPipelines() {
+    WriteToFile.createTempFile(" /pipelines/waiting ")
+
     []
   }
 
@@ -475,6 +496,8 @@ class TaskController {
   PipelineExecution updatePipelineStage(
     @PathVariable String id,
     @PathVariable String stageId, @RequestBody Map context) {
+    WriteToFile.createTempFile(" /pipelines/"+id+"/stages/"+ stageId +" -- /pipelines/{id}/stages/{stageId} ")
+
     return executionOperator.updateStage(PIPELINE, id, stageId,
         { stage ->
           stage.context.putAll(context)
@@ -502,6 +525,8 @@ class TaskController {
   @RequestMapping(value = "/pipelines/{id}/stages/{stageId}/restart", method = RequestMethod.PUT)
   PipelineExecution retryPipelineStage(
     @PathVariable String id, @PathVariable String stageId) {
+    WriteToFile.createTempFile(" /pipelines/"+id+"/stages/"+ stageId +"/restart -- /pipelines/{id}/stages/{stageId}/restart ")
+
     return executionOperator.restartStage(id, stageId)
   }
 
@@ -510,6 +535,8 @@ class TaskController {
   Map evaluateExpressionForExecution(@PathVariable("id") String id,
                                      @RequestParam("expression")
                                        String expression) {
+    WriteToFile.createTempFile(" /pipelines/"+id+"/evaluateExpression -- /pipelines/{id}/evaluateExpression ")
+
     def execution = executionRepository.retrieve(PIPELINE, id)
     def context = [
       execution: execution,
@@ -529,6 +556,8 @@ class TaskController {
   Map evaluateExpressionForExecutionAtStage(@PathVariable("id") String id,
                                             @PathVariable("stageId") String stageId,
                                             @RequestParam("expression") String expression) {
+    WriteToFile.createTempFile(" /pipelines/"+id+"/"+ stageId +"/evaluateExpression -- /pipelines/{id}/{stageId}/evaluateExpression ")
+
     def execution = executionRepository.retrieve(PIPELINE, id)
     def stage = execution.stages.find { it.id == stageId }
 
@@ -550,6 +579,8 @@ class TaskController {
                         @RequestParam(value = "requisiteStageRefIds", defaultValue = "") String requisiteStageRefIds,
                         @RequestParam(value = "spelVersion", defaultValue = "") String spelVersionOverride,
                         @RequestBody List<Map<String, String>> expressions) {
+    WriteToFile.createTempFile(" /pipelines/"+id+"/evaluateVariables -- /pipelines/{id}/evaluateVariables ")
+
     def execution = executionRepository.retrieve(PIPELINE, id)
 
     return expressionUtils.evaluateVariables(execution,
@@ -577,6 +608,7 @@ class TaskController {
                                                       @RequestParam(value = "statuses", required = false)
                                             String statuses,
                                                       @RequestParam(value = "expand", defaultValue = "true") Boolean expand) {
+    WriteToFile.createTempFile(" /v2/applications/"+application+"/pipelines -- /v2/applications/{application}/pipelines ");
     return getPipelinesForApplication(application, limit, statuses, expand)
   }
 
@@ -588,6 +620,8 @@ class TaskController {
                                                          @RequestParam(value = "statuses", required = false)
                                                String statuses,
                                                          @RequestParam(value = "expand", defaultValue = "true") Boolean expand) {
+    WriteToFile.createTempFile(" /applications/{application}/pipelines ")
+
     if (!front50Service) {
       throw new UnsupportedOperationException("Cannot lookup pipelines, front50 has not been enabled. Fix this by setting front50.enabled: true")
     }

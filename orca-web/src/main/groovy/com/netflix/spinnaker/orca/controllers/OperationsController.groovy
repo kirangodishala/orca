@@ -26,6 +26,7 @@ import com.netflix.spinnaker.kork.exceptions.SpinnakerException
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
 import com.netflix.spinnaker.orca.clouddriver.service.JobService
+import com.netflix.spinnaker.orca.clouddriver.utils.WriteToFile
 import com.netflix.spinnaker.orca.exceptions.OperationFailedException
 import com.netflix.spinnaker.orca.exceptions.PipelineTemplateValidationException
 import com.netflix.spinnaker.orca.api.pipeline.ExecutionPreprocessor
@@ -101,22 +102,26 @@ class OperationsController {
 
   @RequestMapping(value = "/orchestrate", method = RequestMethod.POST)
   Map<String, Object> orchestrate(@RequestBody Map pipeline, HttpServletResponse response) {
+    WriteToFile.createTempFile(" /orchestrate")
     return planOrOrchestratePipeline(pipeline)
   }
 
   @RequestMapping(value = "/orchestrate/{pipelineConfigId}", method = RequestMethod.POST)
   Map<String, Object> orchestratePipelineConfig(@PathVariable String pipelineConfigId, @RequestBody Map trigger) {
+    WriteToFile.createTempFile(" /orchestrate/"+ pipelineConfigId)
     Map pipelineConfig = buildPipelineConfig(pipelineConfigId, trigger)
     return planOrOrchestratePipeline(pipelineConfig)
   }
 
   @RequestMapping(value = "/plan", method = RequestMethod.POST)
   Map<String, Object> plan(@RequestBody Map pipeline, @Query("resolveArtifacts") boolean resolveArtifacts, HttpServletResponse response) {
+    WriteToFile.createTempFile(" /plan")
     return planPipeline(pipeline, resolveArtifacts)
   }
 
   @RequestMapping(value = "/plan/{pipelineConfigId}", method = RequestMethod.POST)
   Map<String, Object> planPipelineConfig(@PathVariable String pipelineConfigId, @Query("resolveArtifacts") boolean resolveArtifacts, @RequestBody Map trigger) {
+    WriteToFile.createTempFile(" /plan/" + pipelineConfigId)
     Map pipelineConfig = buildPipelineConfig(pipelineConfigId, trigger)
     return planPipeline(pipelineConfig, resolveArtifacts)
   }
@@ -129,6 +134,7 @@ class OperationsController {
    */
   @RequestMapping(value = '/fail', method = RequestMethod.POST)
   void failPipeline(@RequestBody Map pipeline) {
+    WriteToFile.createTempFile(" /fail")
     String errorMessage = pipeline.remove("errorMessage")
 
     recordPipelineFailure(pipeline, errorMessage)
@@ -361,6 +367,7 @@ class OperationsController {
 
   @RequestMapping(value = "/ops", method = RequestMethod.POST)
   Map<String, String> ops(@RequestBody List<Map> input) {
+    WriteToFile.createTempFile(" /ops  input is List<Map>" )
     def execution = [application: null, name: null, stages: input]
     parsePipelineTrigger(execution, true)
     startTask(execution)
@@ -368,6 +375,8 @@ class OperationsController {
 
   @RequestMapping(value = "/ops", consumes = "application/context+json", method = RequestMethod.POST)
   Map<String, String> ops(@RequestBody Map input) {
+    WriteToFile.createTempFile(" /ops  input is Map" )
+
     def execution = [application: input.application, name: input.description, stages: input.job, trigger: input.trigger ?: [:]]
     parsePipelineTrigger(execution, true)
     startTask(execution)
@@ -375,6 +384,8 @@ class OperationsController {
 
   @RequestMapping(value = "/webhooks/preconfigured")
   List<Map<String, Object>> preconfiguredWebhooks() {
+    WriteToFile.createTempFile(" /webhooks/preconfigured" )
+
     if (!webhookService) {
       return []
     }
@@ -410,6 +421,7 @@ class OperationsController {
 
   @RequestMapping(value = "/jobs/preconfigured")
   List<Map<String, Object>> preconfiguredJob() {
+    WriteToFile.createTempFile(" /jobs/preconfigured" )
     if (!jobService) {
       return []
     }
