@@ -135,11 +135,7 @@ public class DelegatingOortService extends DelegatingClouddriverService<OortServ
   @Override
   public Response fetchArtifact(Artifact artifact) {
     if (artifact != null) {
-      log.info(
-          "********** Fetching artifact : {}, type : {}; metadata string length: {}",
-          artifact.getName(),
-          artifact.getType(),
-          artifact.getMetadata().toString().length());
+      log.info("********** Fetching artifact : {}", artifact);
     }
 
     return getService().fetchArtifact(artifact);
